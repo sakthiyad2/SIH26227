@@ -571,16 +571,46 @@ function parseRecordValue(value, fallback) {
 
 function Empty({ text }) { return <div className="empty-state-card"><span>o</span><p>{text}</p></div> }
 function ProfileView({ user, onLogout }) {
-  const fields = [
-    ['Name', user.full_name],
-    ['Email', user.email],
-    ['Organization', user.organization || 'Not provided'],
-    ['Role', user.role],
-    ['Account status', user.status],
-    ['Last sign-in', user.last_login || 'No previous sign-in recorded'],
-  ]
+  const initials = user.full_name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()
+  const roleLabel = { ADMIN: 'Administrator', ANALYST: 'Analyst', RESEARCHER: 'Researcher' }[user.role] || user.role
+  const lastSignIn = user.last_login
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(user.last_login))
+    : 'No previous sign-in recorded'
 
-  return <section className="feature-view"><FeatureIntro kicker="Account" title="Workspace profile" text="Your authorized workspace identity and access status." /><div className="profile-panel"><dl>{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><button className="review-btn reject" type="button" onClick={onLogout}>Sign out</button></div></section>
+  return <section className="feature-view profile-view">
+    <FeatureIntro kicker="Account / authorized access" title="Your profile" text="Review the identity and permissions associated with your GeoWatch workspace account." />
+    <div className="profile-layout">
+      <section className="profile-identity" aria-label="Profile identity">
+        <span className="profile-avatar">{initials}</span>
+        <span className={`profile-status ${user.status.toLowerCase()}`}><i />{user.status}</span>
+        <h3>{user.full_name}</h3>
+        <p>{roleLabel}</p>
+        <div className="profile-organization"><span>Organization</span><strong>{user.organization || 'Not provided'}</strong></div>
+      </section>
+      <div className="profile-details">
+        <section className="profile-section">
+          <div className="profile-section-heading"><div><span className="section-kicker">Identity</span><h3>Personal details</h3></div><span>Account information</span></div>
+          <dl className="profile-detail-grid">
+            <div><dt>Full name</dt><dd>{user.full_name}</dd></div>
+            <div><dt>Email address</dt><dd>{user.email}</dd></div>
+            <div><dt>Organization</dt><dd>{user.organization || 'Not provided'}</dd></div>
+          </dl>
+        </section>
+        <section className="profile-section">
+          <div className="profile-section-heading"><div><span className="section-kicker">Permissions</span><h3>Access and activity</h3></div><span>Workspace account</span></div>
+          <dl className="profile-access-grid">
+            <div><dt>Assigned role</dt><dd>{roleLabel}</dd></div>
+            <div><dt>Account status</dt><dd><span className={`profile-status-text ${user.status.toLowerCase()}`}>{user.status}</span></dd></div>
+            <div><dt>Last sign-in</dt><dd>{lastSignIn}</dd></div>
+          </dl>
+        </section>
+        <section className="profile-signout-row">
+          <div><strong>End this session</strong><span>You’ll need to sign in again to access this workspace.</span></div>
+          <button className="profile-signout" type="button" onClick={onLogout}>Sign out</button>
+        </section>
+      </div>
+    </div>
+  </section>
 }
 
 export default App

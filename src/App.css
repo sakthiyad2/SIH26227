@@ -1125,3 +1125,41 @@ button.auth-submit:disabled {
   .admin-user-list .user-status-control { width: min(160px, 100%); }
   .admin-form-row { grid-template-columns: 1fr; }
 }
+
+.profile-view .feature-intro { margin-bottom: 20px; }
+.profile-layout { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); align-items: start; gap: 20px; }
+.profile-identity, .profile-details { border: 1px solid #d6e1ec; border-radius: 9px; background: #fff; box-shadow: 0 8px 22px rgba(35, 63, 96, 0.06); }
+.profile-identity { display: flex; flex-direction: column; align-items: flex-start; padding: 22px; }
+.profile-avatar { display: grid; width: 58px; height: 58px; place-items: center; border: 1px solid #087f72; border-radius: 10px; color: #fff; background: #087f72; font-size: 1.1rem; font-weight: 800; }
+.profile-status { display: inline-flex; align-items: center; gap: 7px; margin-top: 20px; padding: 6px 9px; border-radius: 6px; color: #087f72; background: #eaf7f3; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+.profile-status i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.profile-status.pending { color: #966b16; background: #fff5df; }
+.profile-status.suspended, .profile-status.rejected { color: #a44343; background: #fff0ef; }
+.profile-identity h3 { margin: 13px 0 2px; overflow-wrap: anywhere; color: #17253b; font-size: 1.25rem; line-height: 1.25; }
+.profile-identity > p { margin: 0; color: #60738d; font-size: 0.82rem; }
+.profile-organization { display: flex; width: 100%; flex-direction: column; gap: 4px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e6edf3; }
+.profile-organization span, .profile-detail-grid dt, .profile-access-grid dt { color: #8292a8; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+.profile-organization strong { overflow-wrap: anywhere; color: #314766; font-size: 0.8rem; }
+.profile-details { padding: 0 22px; }
+.profile-section { padding: 21px 0; border-bottom: 1px solid #e6edf3; }
+.profile-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.profile-section-heading .section-kicker { font-size: 0.63rem; }
+.profile-section-heading h3 { margin: 4px 0 0; color: #17253b; font-size: 1rem; }
+.profile-section-heading > span { color: #8292a8; font-size: 0.7rem; }
+.profile-detail-grid, .profile-access-grid { display: grid; gap: 16px; margin: 18px 0 0; }
+.profile-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.profile-detail-grid > div, .profile-access-grid > div { min-width: 0; }
+.profile-detail-grid dd, .profile-access-grid dd { margin: 5px 0 0; overflow-wrap: anywhere; color: #314766; font-size: 0.82rem; line-height: 1.45; }
+.profile-access-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.profile-status-text { color: #087f72; font-weight: 800; }
+.profile-status-text.pending { color: #966b16; }
+.profile-status-text.suspended, .profile-status-text.rejected { color: #a44343; }
+.profile-signout-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 0; }
+.profile-signout-row > div { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.profile-signout-row strong { color: #314766; font-size: 0.8rem; }
+.profile-signout-row span { color: #8292a8; font-size: 0.72rem; line-height: 1.4; }
+.profile-signout { flex: 0 0 auto; min-height: 38px; border: 1px solid #e5adad; border-radius: 7px; padding: 7px 12px; color: #a44343; background: #fff5f4; font-size: 0.74rem; font-weight: 800; cursor: pointer; }
+.profile-signout:hover { border-color: #c66e6e; background: #fff0ef; }
+.profile-signout:focus-visible { outline: 3px solid rgba(164, 67, 67, 0.2); outline-offset: 2px; }
+@media (max-width: 760px) { .profile-layout { grid-template-columns: 1fr; }.profile-access-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .profile-details { padding: 0 16px; }.profile-identity { padding: 18px; }.profile-detail-grid { grid-template-columns: 1fr; }.profile-section-heading { align-items: flex-start; flex-direction: column; gap: 4px; }.profile-signout-row { align-items: flex-start; flex-direction: column; } }
