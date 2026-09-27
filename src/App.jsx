@@ -242,7 +242,7 @@ function App() {
         {activeView === 'provenance' && <ProvenanceView selectedSceneId={provenanceSceneId} setSelectedSceneId={setProvenanceSceneId} />}
         {activeView === 'evaluation' && <EvaluationView />}
         {activeView === 'datasets' && <DatasetView />}
-        {activeView === 'admin-users' && <AdminUsersView />}
+        {activeView === 'admin-users' && <AdminUsersView currentUserId={user?.id} />}
         {activeView === 'profile' && <ProfileView user={user} onLogout={logout} />}
         {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} onNavigate={(view) => { setHelpOpen(false); setActiveView(view) }} />}
       </main>
@@ -303,11 +303,14 @@ function DatasetView() {
   return <section className="feature-view"><FeatureIntro kicker="Approved data sources" title="Build the archive from open Earth observation data" text="Imagery must be publicly accessible under applicable licences or provided by the organisers. This workspace keeps source, provider, coverage, and access terms visible before ingestion." /><div className="dataset-policy"><strong>Public-data policy</strong><span>No classified, operational, or service-generated data is used in this platform.</span></div><div className="dataset-grid">{datasets.map(([name, provider, kind, url, coverage]) => <article className="dataset-card" key={name}><div className="dataset-card-head"><span>{coverage}</span><b>PUBLIC</b></div><h3>{name}</h3><p>{provider}</p><small>{kind}</small><a href={url} target="_blank" rel="noreferrer">Open official source -&gt;</a></article>)}</div><div className="ingest-note"><span>Next step</span><strong>Download or connect through the provider's public access workflow, then ingest only validated imagery with its licence and source metadata.</strong></div></section>
 }
 
-function AdminUsersView() {
+function AdminUsersView({ currentUserId }) {
   const [users, setUsers] = useState([])
   const [message, setMessage] = useState('Loading user directory...')
   const [form, setForm] = useState({ full_name: '', email: '', organization: '', password: '', role: 'ANALYST', status: 'ACTIVE' })
   const [busy, setBusy] = useState(false)
+  const [busyUserId, setBusyUserId] = useState('')
+  const [query, setQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState('ALL')
 
   const loadUsers = async () => {
     const token = window.localStorage.getItem('geowatch_session')
@@ -341,13 +344,86 @@ function AdminUsersView() {
     }
   }
 
-  return <section className="feature-view"><FeatureIntro kicker="Administrator / access control" title="Create and manage users" text="Accounts created here are written directly to the database with hashed passwords. Active users can sign in immediately; pending accounts require approval." /><div className="admin-user-layout"><form className="admin-create-form" onSubmit={createUser}><div className="panel-header"><span className="panel-label">Add user</span><span className="panel-action">Database-backed</span></div><label>Full name<input required value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label><label>Email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label><label>Organization<input required value={form.organization} onChange={(event) => setForm({ ...form, organization: event.target.value })} /></label><PasswordField label="Temporary password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /><label>Role<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="ANALYST">Analyst</option><option value="RESEARCHER">Researcher</option><option value="ADMIN">Administrator</option></select></label><label>Initial status<select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option value="ACTIVE">Active - can sign in</option><option value="PENDING">Pending approval</option></select></label><button className="add-button" type="submit" disabled={busy}>{busy ? 'Creating...' : 'Add user'}</button><p className="admin-message">{message}</p></form><div className="user-directory"><div className="panel-header"><span className="panel-label">User directory</span><span className="panel-action">{users.length} accounts</span></div>{users.map((item) => <div className="user-row" key={item.id}><span className="avatar small">{item.full_name.slice(0, 2).toUpperCase()}</span><div><strong>{item.full_name}</strong><small>{item.email} · {item.organization}</small></div><span className="user-role">{item.role}</span><span className={`user-status ${item.status.toLowerCase()}`}>{item.status}</span></div>)}</div></div></section>
+  const updateStatus = async (item, status) => {
+    setBusyUserId(item.id)
+    try {
+      const token = window.localStorage.getItem('geowatch_session')
+      const response = await fetch(`${API_BASE}/auth/admin/users/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.detail || 'Unable to update account status')
+      setUsers((currentUsers) => currentUsers.map((userItem) => userItem.id === item.id ? payload.user : userItem))
+      setMessage(`${item.full_name}'s access is now ${payload.user.status.toLowerCase()}.`)
+    } catch (error) {
+      setMessage(error.message)
+    } finally {
+      setBusyUserId('')
+    }
+  }
+
+  const normalizedQuery = query.trim().toLowerCase()
+  const visibleUsers = users.filter((item) => {
+    const matchesQuery = [item.full_name, item.email, item.organization].some((value) => value.toLowerCase().includes(normalizedQuery))
+    return matchesQuery && (roleFilter === 'ALL' || item.role === roleFilter)
+  })
+  const activeCount = users.filter((item) => item.status === 'ACTIVE').length
+  const pendingCount = users.filter((item) => item.status === 'PENDING').length
+
+  return <section className="feature-view admin-users-view">
+    <FeatureIntro kicker="Administrator / access control" title="Create and manage users" text="Create accounts with the right role, find people in the directory, and control sign-in access. Passwords are stored as hashes." />
+    <div className="admin-user-summary" aria-label="Account totals">
+      <div><span>Total accounts</span><strong>{users.length}</strong></div>
+      <div><span>Active</span><strong>{activeCount}</strong></div>
+      <div><span>Pending approval</span><strong>{pendingCount}</strong></div>
+    </div>
+    <div className="admin-user-layout">
+      <form className="admin-create-form" onSubmit={createUser}>
+        <div className="panel-header"><span className="panel-label">Add user</span><span className="panel-action">New account</span></div>
+        <p className="admin-form-copy">Set identity, role, and initial sign-in access.</p>
+        <label>Full name<input autoComplete="name" required value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label>
+        <label>Email<input autoComplete="email" required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+        <label>Organization<input autoComplete="organization" required value={form.organization} onChange={(event) => setForm({ ...form, organization: event.target.value })} /></label>
+        <PasswordField label="Temporary password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
+        <div className="admin-form-row">
+          <label>Role<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="ANALYST">Analyst</option><option value="RESEARCHER">Researcher</option><option value="ADMIN">Administrator</option></select></label>
+          <label>Initial status<select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option value="ACTIVE">Active</option><option value="PENDING">Pending</option></select></label>
+        </div>
+        <button className="add-button" type="submit" disabled={busy}>{busy ? 'Creating account...' : 'Add user'}</button>
+        <p className="admin-message" role="status" aria-live="polite">{message}</p>
+      </form>
+      <div className="user-directory">
+        <div className="panel-header"><span className="panel-label">User directory</span><span className="panel-action">{visibleUsers.length} of {users.length}</span></div>
+        <div className="admin-directory-tools">
+          <label>Search accounts<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name, email, or organization" /></label>
+          <label>Role<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}><option value="ALL">All roles</option><option value="ANALYST">Analyst</option><option value="RESEARCHER">Researcher</option><option value="ADMIN">Administrator</option></select></label>
+        </div>
+        <div className="admin-user-list">
+          {visibleUsers.map((item) => <div className="user-row" key={item.id}>
+            <span className="avatar small">{item.full_name.slice(0, 2).toUpperCase()}</span>
+            <div className="user-identity"><strong>{item.full_name}</strong><small>{item.email} · {item.organization}</small><small>{item.last_login ? `Last sign-in ${new Date(item.last_login).toLocaleDateString()}` : 'Never signed in'}</small></div>
+            <span className="user-role">{item.role}</span>
+            <label className="user-status-control">
+              <span className="sr-only">Access status for {item.full_name}</span>
+              <select aria-label={`Access status for ${item.full_name}`} value={item.status} disabled={busyUserId === item.id || item.id === currentUserId} title={item.id === currentUserId ? 'Your administrator account cannot be suspended here.' : 'Change account access'} onChange={(event) => updateStatus(item, event.target.value)}>
+                {item.status === 'PENDING' && <option value="PENDING" disabled>Pending</option>}
+                <option value="ACTIVE">Active</option><option value="SUSPENDED">Suspended</option><option value="REJECTED">Rejected</option>
+              </select>
+            </label>
+          </div>)}
+          {visibleUsers.length === 0 && <p className="admin-empty">{users.length ? 'No accounts match these filters.' : 'No accounts found.'}</p>}
+        </div>
+      </div>
+    </div>
+  </section>
 }
 
-function PasswordField({ value, onChange, label = 'Password' }) {
+function PasswordField({ value, onChange, label = 'Password', autoComplete = 'current-password' }) {
   const [visible, setVisible] = useState(false)
 
-  return <label>{label}<div className="password-field"><input type={visible ? 'text' : 'password'} autoComplete="current-password" required minLength="10" value={value} onChange={onChange} /><button type="button" className="password-toggle" onClick={() => setVisible((previous) => !previous)} aria-label={visible ? 'Hide password' : 'Show password'}>{visible ? 'Hide' : 'Show'}</button></div></label>
+  return <label>{label}<div className="password-field"><input type={visible ? 'text' : 'password'} autoComplete={autoComplete} required minLength="10" value={value} onChange={onChange} /><button type="button" className="password-toggle" onClick={() => setVisible((previous) => !previous)} aria-label={visible ? 'Hide password' : 'Show password'} aria-pressed={visible}>{visible ? 'Hide' : 'Show'}</button></div></label>
 }
 
 function Dashboard({ stats, changes, onSearch }) {
