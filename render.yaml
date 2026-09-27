@@ -26,4 +26,4 @@ services:
         fromService:
           type: web
           name: sih26227-api
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
