@@ -21,7 +21,6 @@ services:
     runtime: static
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
-    plan: free
     envVars:
       - key: VITE_API_BASE_URL
         fromService:
