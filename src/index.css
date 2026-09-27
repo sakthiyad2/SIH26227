@@ -1,0 +1,57 @@
+:root {
+  font-family: Inter, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #17253b;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --bg-900: #f4f7fb;
+  --bg-800: #e9eef6;
+  --bg-700: #dce6f2;
+  --panel: rgba(255, 255, 255, 0.94);
+  --panel-strong: #ffffff;
+  --panel-soft: #f7fafe;
+  --line: rgba(39, 69, 108, 0.14);
+  --line-strong: rgba(39, 69, 108, 0.24);
+  --primary: #087f72;
+  --primary-strong: #056257;
+  --accent: #245bb5;
+  --accent-soft: rgba(36, 91, 181, 0.1);
+  --text: #17253b;
+  --muted: #60738d;
+  --shadow: rgba(35, 63, 96, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg-900);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--text);
+  background-color: #f4f7fb;
+  background-image:
+    linear-gradient(rgba(36, 91, 181, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 91, 181, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, #f9fbfe 0%, #eef3f8 100%);
+  background-size: 34px 34px, 34px 34px, auto;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+

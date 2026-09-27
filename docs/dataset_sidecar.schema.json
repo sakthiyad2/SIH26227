@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SIH26227 staged scene metadata",
+  "type": "object",
+  "required": ["product_id", "acquisition_datetime", "platform", "sensor", "processing_level", "crs", "bounding_box", "original_source_url", "license_terms"],
+  "properties": {
+    "product_id": {"type": "string"},
+    "acquisition_datetime": {"type": "string"},
+    "platform": {"type": "string"},
+    "sensor": {"type": "string"},
+    "processing_level": {"type": "string"},
+    "orbit": {"type": "string"},
+    "polarization": {"type": "string"},
+    "acquisition_mode": {"type": "string"},
+    "crs": {"type": "string"},
+    "bounding_box": {"type": "string"},
+    "resolution": {"type": "string"},
+    "bands": {"type": ["string", "array"]},
+    "cloud_cover": {"type": ["number", "string", "null"]},
+    "product_type": {"type": "string"},
+    "license_terms": {"type": "string"},
+    "original_source_url": {"type": "string"}
+  },
+  "additionalProperties": true
+}
